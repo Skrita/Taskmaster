@@ -32,7 +32,7 @@ export function useTaskStore() {
     description: string
     status: Status
     priority: Priority
-    assignee: string
+    assignees: string[]
   }): Task {
     const now = new Date().toISOString()
     const task: Task = {

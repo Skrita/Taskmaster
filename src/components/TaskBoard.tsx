@@ -4,16 +4,15 @@ import { TaskCard } from './TaskCard'
 import { TaskForm } from './TaskForm'
 
 const COLUMNS: { status: Status; label: string; color: string; dot: string }[] = [
-  { status: 'todo',        label: 'Todo',        color: 'border-t-gray-400',  dot: 'bg-gray-400'  },
-  { status: 'in-progress', label: 'In Progress', color: 'border-t-blue-500',  dot: 'bg-blue-500'  },
-  { status: 'review',      label: 'Review',      color: 'border-t-yellow-400',dot: 'bg-yellow-400'},
-  { status: 'done',        label: 'Done',        color: 'border-t-green-500', dot: 'bg-green-500' },
+  { status: 'todo',        label: 'Todo',        color: 'border-t-gray-400', dot: 'bg-gray-400' },
+  { status: 'in-progress', label: 'In Progress', color: 'border-t-blue-500', dot: 'bg-blue-500' },
+  { status: 'done',        label: 'Done',        color: 'border-t-green-500',dot: 'bg-green-500'},
 ]
 
 interface Props {
   tasks: Task[]
   onCardClick: (task: Task) => void
-  onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignee: string }) => void
+  onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignees: string[] }) => void
   onStatusDrop: (taskId: string, status: Status) => void
 }
 
@@ -39,12 +38,11 @@ export function TaskBoard({ tasks, onCardClick, onAddTask, onStatusDrop }: Props
         return (
           <div
             key={col.status}
-            className={`flex flex-col min-w-64 w-64 shrink-0 bg-gray-50 rounded-2xl border-t-4 ${col.color} transition-colors ${dragOver === col.status ? 'bg-blue-50 ring-2 ring-blue-300' : ''}`}
+            className={`flex flex-col min-w-64 w-64 shrink-0 bg-gray-50 rounded-2xl border-t-4 ${col.color} transition-colors ${dragOver === col.status ? 'bg-purple-50 ring-2 ring-purple-300' : ''}`}
             onDragOver={e => { e.preventDefault(); setDragOver(col.status) }}
             onDragLeave={() => setDragOver(null)}
             onDrop={e => handleDrop(e, col.status)}
           >
-            {/* Column header */}
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${col.dot}`} />
@@ -55,17 +53,16 @@ export function TaskBoard({ tasks, onCardClick, onAddTask, onStatusDrop }: Props
               </div>
               <button
                 onClick={() => setAddingIn(col.status)}
-                className="text-gray-400 hover:text-blue-500 text-lg leading-none transition-colors"
+                className="text-gray-400 hover:text-purple-500 text-lg leading-none transition-colors"
                 title="Add task"
               >
                 +
               </button>
             </div>
 
-            {/* Cards */}
             <div className="flex flex-col gap-2 px-3 pb-3 flex-1 overflow-y-auto max-h-[calc(100vh-260px)]">
               {addingIn === col.status && (
-                <div className="bg-white rounded-xl border border-blue-200 p-3 shadow-sm">
+                <div className="bg-white rounded-xl border border-purple-200 p-3 shadow-sm">
                   <TaskForm
                     defaultStatus={col.status}
                     onSubmit={fields => {

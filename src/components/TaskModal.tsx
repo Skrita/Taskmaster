@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import type { Task, Status, Priority } from '../types'
 import { SubtaskList } from './SubtaskList'
 import { CommentList } from './CommentList'
+import { AssigneeInput } from './AssigneeInput'
 
 const STATUS_LABELS: Record<Status, string> = {
   todo: 'Todo',
   'in-progress': 'In Progress',
-  review: 'Review',
   done: 'Done',
 }
 
@@ -40,16 +40,15 @@ export function TaskModal({
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
-  const [assignee, setAssignee] = useState(task.assignee)
+  const [assignees, setAssignees] = useState<string[]>(task.assignees)
   const [status, setStatus] = useState<Status>(task.status)
   const [priority, setPriority] = useState<Priority>(task.priority)
 
-  // Sync state when task prop changes (e.g. subtask/comment updates)
   useEffect(() => {
     if (!editing) {
       setTitle(task.title)
       setDescription(task.description)
-      setAssignee(task.assignee)
+      setAssignees(task.assignees)
       setStatus(task.status)
       setPriority(task.priority)
     }
@@ -57,7 +56,7 @@ export function TaskModal({
 
   function handleSave() {
     if (!title.trim()) return
-    onUpdate(task.id, { title: title.trim(), description, assignee, status, priority })
+    onUpdate(task.id, { title: title.trim(), description, assignees, status, priority })
     setEditing(false)
   }
 
@@ -92,7 +91,7 @@ export function TaskModal({
                 autoFocus
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full text-lg font-bold text-gray-900 border-b-2 border-blue-400 focus:outline-none pb-0.5"
+                className="w-full text-lg font-bold text-gray-900 border-b-2 border-purple-400 focus:outline-none pb-0.5"
               />
             ) : (
               <h2 className="text-lg font-bold text-gray-900">{task.title}</h2>
@@ -104,7 +103,7 @@ export function TaskModal({
           <div className="flex gap-2 items-center shrink-0">
             {editing ? (
               <>
-                <button onClick={handleSave} className="text-sm bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 font-medium transition-colors">Save</button>
+                <button onClick={handleSave} className="text-sm bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600 font-medium transition-colors">Save</button>
                 <button onClick={() => setEditing(false)} className="text-sm text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
               </>
             ) : (
@@ -124,7 +123,7 @@ export function TaskModal({
               <select
                 value={status}
                 onChange={e => handleStatusChange(e.target.value as Status)}
-                className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400"
               >
                 {(Object.keys(STATUS_LABELS) as Status[]).map(s => (
                   <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -138,7 +137,7 @@ export function TaskModal({
                 <select
                   value={priority}
                   onChange={e => handlePriorityChange(e.target.value as Priority)}
-                  className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400"
                 >
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
@@ -150,20 +149,25 @@ export function TaskModal({
                 </span>
               )}
             </div>
+          </div>
 
-            <div>
-              <label className="text-xs text-gray-400 block mb-1">Assignee</label>
-              {editing ? (
-                <input
-                  value={assignee}
-                  onChange={e => setAssignee(e.target.value)}
-                  placeholder="Name..."
-                  className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 w-36"
-                />
-              ) : (
-                <span className="text-sm text-gray-700">{task.assignee || '—'}</span>
-              )}
-            </div>
+          {/* Assignees */}
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Assignees</label>
+            {editing ? (
+              <AssigneeInput assignees={assignees} onChange={setAssignees} />
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {task.assignees.length === 0
+                  ? <span className="text-sm text-gray-300">None</span>
+                  : task.assignees.map(name => (
+                      <span key={name} className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                        {name}
+                      </span>
+                    ))
+                }
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -174,7 +178,7 @@ export function TaskModal({
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={3}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
               />
             ) : (
               <p className="text-sm text-gray-700 whitespace-pre-wrap min-h-6">
@@ -185,7 +189,6 @@ export function TaskModal({
 
           <hr className="border-gray-100" />
 
-          {/* Subtasks */}
           <SubtaskList
             subtasks={task.subtasks}
             onAdd={title => onAddSubtask(task.id, title)}
@@ -195,7 +198,6 @@ export function TaskModal({
 
           <hr className="border-gray-100" />
 
-          {/* Comments */}
           <CommentList
             comments={task.comments}
             onAdd={(author, text) => onAddComment(task.id, author, text)}

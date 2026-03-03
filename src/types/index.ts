@@ -1,4 +1,4 @@
-export type Status = 'todo' | 'in-progress' | 'review' | 'done'
+export type Status = 'todo' | 'in-progress' | 'done'
 export type Priority = 'low' | 'medium' | 'high'
 
 export interface Subtask {
@@ -20,7 +20,7 @@ export interface Task {
   description: string
   status: Status
   priority: Priority
-  assignee: string
+  assignees: string[]
   subtasks: Subtask[]
   comments: Comment[]
   createdAt: string

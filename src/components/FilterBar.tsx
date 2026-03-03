@@ -18,25 +18,24 @@ export function FilterBar({ filter, assignees, onChange }: Props) {
         placeholder="Search tasks..."
         value={filter.search}
         onChange={e => set('search', e.target.value)}
-        className="flex-1 min-w-40 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="flex-1 min-w-40 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
       />
 
       <select
         value={filter.status}
         onChange={e => set('status', e.target.value as Status | 'all')}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
       >
         <option value="all">All statuses</option>
         <option value="todo">Todo</option>
         <option value="in-progress">In Progress</option>
-        <option value="review">Review</option>
         <option value="done">Done</option>
       </select>
 
       <select
         value={filter.priority}
         onChange={e => set('priority', e.target.value as Priority | 'all')}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
       >
         <option value="all">All priorities</option>
         <option value="high">High</option>
@@ -47,7 +46,7 @@ export function FilterBar({ filter, assignees, onChange }: Props) {
       <select
         value={filter.assignee}
         onChange={e => set('assignee', e.target.value)}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
       >
         <option value="">All assignees</option>
         {assignees.map(a => (

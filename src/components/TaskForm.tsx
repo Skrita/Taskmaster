@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import type { Status, Priority } from '../types'
+import { AssigneeInput } from './AssigneeInput'
 
 interface FormData {
   title: string
   description: string
   status: Status
   priority: Priority
-  assignee: string
+  assignees: string[]
 }
 
 interface Props {
@@ -21,7 +22,7 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
     description: '',
     status: defaultStatus,
     priority: 'medium',
-    assignee: '',
+    assignees: [],
   })
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
@@ -42,7 +43,7 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         placeholder="Task title *"
         value={data.title}
         onChange={e => set('title', e.target.value)}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
       />
 
       <textarea
@@ -50,25 +51,24 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         value={data.description}
         onChange={e => set('description', e.target.value)}
         rows={2}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
       />
 
       <div className="flex gap-2">
         <select
           value={data.status}
           onChange={e => set('status', e.target.value as Status)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
         >
           <option value="todo">Todo</option>
           <option value="in-progress">In Progress</option>
-          <option value="review">Review</option>
           <option value="done">Done</option>
         </select>
 
         <select
           value={data.priority}
           onChange={e => set('priority', e.target.value as Priority)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
         >
           <option value="high">High priority</option>
           <option value="medium">Medium priority</option>
@@ -76,17 +76,16 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         </select>
       </div>
 
-      <input
-        placeholder="Assignee name (optional)"
-        value={data.assignee}
-        onChange={e => set('assignee', e.target.value)}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      <AssigneeInput
+        assignees={data.assignees}
+        onChange={names => set('assignees', names)}
+        placeholder="Add assignees (Enter or comma to add)..."
       />
 
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
-          className="flex-1 bg-blue-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          className="flex-1 bg-purple-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-purple-600 transition-colors"
         >
           Create Task
         </button>

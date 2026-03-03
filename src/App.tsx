@@ -15,13 +15,12 @@ export default function App() {
     priority: 'all',
   })
 
-  // Keep modal in sync with store updates
   const liveSelectedTask = selectedTask
     ? store.tasks.find(t => t.id === selectedTask.id) ?? null
     : null
 
   const assignees = useMemo(
-    () => [...new Set(store.tasks.map(t => t.assignee).filter(Boolean))].sort(),
+    () => [...new Set(store.tasks.flatMap(t => t.assignees).filter(Boolean))].sort(),
     [store.tasks]
   )
 
@@ -30,7 +29,7 @@ export default function App() {
     return store.tasks.filter(t => {
       if (filter.status !== 'all' && t.status !== filter.status) return false
       if (filter.priority !== 'all' && t.priority !== filter.priority) return false
-      if (filter.assignee && t.assignee !== filter.assignee) return false
+      if (filter.assignee && !t.assignees.includes(filter.assignee)) return false
       if (q && !t.title.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q)) return false
       return true
     })
@@ -41,8 +40,10 @@ export default function App() {
       {/* Top bar */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
-          <h1 className="text-lg font-bold text-gray-900">Task Manager</h1>
+          <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
+          <h1 className="text-lg font-bold text-gray-900">
+            TaskmAister
+          </h1>
         </div>
         <div className="flex items-center gap-3 text-sm text-gray-400">
           <span>{store.tasks.length} tasks</span>
@@ -66,7 +67,6 @@ export default function App() {
         />
       </main>
 
-      {/* Task detail modal */}
       {liveSelectedTask && (
         <TaskModal
           task={liveSelectedTask}
