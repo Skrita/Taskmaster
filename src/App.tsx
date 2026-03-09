@@ -24,6 +24,7 @@ function TaskApp() {
     status: 'all',
     assignee: '',
     priority: 'all',
+    tag: '',
   })
 
   function handleProfileSave(name: string) {
@@ -56,12 +57,18 @@ function TaskApp() {
     [store.tasks]
   )
 
+  const allTags = useMemo(
+    () => [...new Set(store.tasks.flatMap(t => t.tags).filter(Boolean))].sort(),
+    [store.tasks]
+  )
+
   const filtered = useMemo(() => {
     const q = filter.search.toLowerCase()
     return store.tasks.filter(t => {
       if (filter.status !== 'all' && t.status !== filter.status) return false
       if (filter.priority !== 'all' && t.priority !== filter.priority) return false
       if (filter.assignee && !t.assignees.includes(filter.assignee)) return false
+      if (filter.tag && !t.tags.includes(filter.tag)) return false
       if (q && !t.title.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q)) return false
       return true
     })
@@ -96,7 +103,7 @@ function TaskApp() {
       </header>
 
       <div className="px-6 py-3 shrink-0">
-        <FilterBar filter={filter} assignees={assignees} onChange={setFilter} />
+        <FilterBar filter={filter} assignees={assignees} tags={allTags} onChange={setFilter} />
       </div>
 
       <main className="flex-1 px-6 pb-6 flex overflow-hidden">

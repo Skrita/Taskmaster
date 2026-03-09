@@ -3,6 +3,7 @@ import type { Task, Status, Priority } from '../types'
 import { SubtaskList } from './SubtaskList'
 import { CommentList } from './CommentList'
 import { AssigneeInput } from './AssigneeInput'
+import { tagColor } from './TaskCard'
 
 const STATUS_LABELS: Record<Status, string> = {
   todo: 'Todo',
@@ -41,6 +42,9 @@ export function TaskModal({
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
   const [assignees, setAssignees] = useState<string[]>(task.assignees)
+  const [tags, setTags] = useState<string[]>(task.tags)
+  const [tagInput, setTagInput] = useState('')
+  const [dueDate, setDueDate] = useState(task.dueDate ?? '')
   const [status, setStatus] = useState<Status>(task.status)
   const [priority, setPriority] = useState<Priority>(task.priority)
 
@@ -49,6 +53,8 @@ export function TaskModal({
       setTitle(task.title)
       setDescription(task.description)
       setAssignees(task.assignees)
+      setTags(task.tags)
+      setDueDate(task.dueDate ?? '')
       setStatus(task.status)
       setPriority(task.priority)
     }
@@ -56,7 +62,15 @@ export function TaskModal({
 
   function handleSave() {
     if (!title.trim()) return
-    onUpdate(task.id, { title: title.trim(), description, assignees, status, priority })
+    onUpdate(task.id, {
+      title: title.trim(),
+      description,
+      assignees,
+      tags,
+      dueDate: dueDate || undefined,
+      status,
+      priority,
+    })
     setEditing(false)
   }
 
@@ -75,6 +89,17 @@ export function TaskModal({
       onDelete(task.id)
       onClose()
     }
+  }
+
+  function addTag(raw: string) {
+    const tag = raw.trim()
+    if (!tag || tags.includes(tag)) return
+    setTags(prev => [...prev, tag])
+    setTagInput('')
+  }
+
+  function removeTag(tag: string) {
+    setTags(prev => prev.filter(t => t !== tag))
   }
 
   return (
@@ -149,6 +174,24 @@ export function TaskModal({
                 </span>
               )}
             </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Due date</label>
+              {editing ? (
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
+                  className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                />
+              ) : (
+                <span className="text-sm text-gray-600">
+                  {task.dueDate
+                    ? new Date(task.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : <span className="text-gray-300">Not set</span>}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Assignees */}
@@ -164,6 +207,42 @@ export function TaskModal({
                       <span key={name} className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                         {name}
                       </span>
+                    ))
+                }
+              </div>
+            )}
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Tags</label>
+            {editing ? (
+              <div className="flex flex-wrap gap-1.5 items-center border border-gray-200 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-purple-400 min-h-9">
+                {tags.map(tag => (
+                  <span key={tag} className={`flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded border ${tagColor(tag)}`}>
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)} className="opacity-60 hover:opacity-100 leading-none">✕</button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput) }
+                    else if (e.key === 'Backspace' && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1])
+                  }}
+                  onBlur={() => addTag(tagInput)}
+                  placeholder={tags.length === 0 ? 'Add tags (Enter or comma)...' : ''}
+                  className="flex-1 min-w-24 text-sm focus:outline-none bg-transparent"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {task.tags.length === 0
+                  ? <span className="text-sm text-gray-300">None</span>
+                  : task.tags.map(tag => (
+                      <span key={tag} className={`text-xs font-medium px-1.5 py-0.5 rounded border ${tagColor(tag)}`}>{tag}</span>
                     ))
                 }
               </div>

@@ -15,6 +15,8 @@ function rowToTask(row: Record<string, unknown>): Task {
     status: row.status as Status,
     priority: row.priority as Priority,
     assignees: (row.assignees as string[]) ?? [],
+    tags: (row.tags as string[]) ?? [],
+    dueDate: (row.due_date as string) ?? undefined,
     subtasks: (row.subtasks as Subtask[]) ?? [],
     comments: (row.comments as Comment[]) ?? [],
     createdAt: row.created_at as string,
@@ -60,6 +62,8 @@ export function useTaskStore() {
     status: Status
     priority: Priority
     assignees: string[]
+    tags: string[]
+    dueDate?: string
   }): Promise<Task> {
     const now = new Date().toISOString()
     const row = {
@@ -69,6 +73,8 @@ export function useTaskStore() {
       status: fields.status,
       priority: fields.priority,
       assignees: fields.assignees,
+      tags: fields.tags,
+      due_date: fields.dueDate ?? null,
       subtasks: [],
       comments: [],
       created_at: now,
@@ -87,6 +93,8 @@ export function useTaskStore() {
     if (fields.status !== undefined) update.status = fields.status
     if (fields.priority !== undefined) update.priority = fields.priority
     if (fields.assignees !== undefined) update.assignees = fields.assignees
+    if (fields.tags !== undefined) update.tags = fields.tags
+    if ('dueDate' in fields) update.due_date = fields.dueDate ?? null
 
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...fields, updatedAt: update.updated_at as string } : t))
     await supabase.from('tasks').update(update).eq('id', id)

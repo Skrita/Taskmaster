@@ -21,6 +21,8 @@ export interface Task {
   status: Status
   priority: Priority
   assignees: string[]
+  tags: string[]
+  dueDate?: string
   subtasks: Subtask[]
   comments: Comment[]
   createdAt: string
@@ -32,4 +34,5 @@ export interface FilterState {
   status: Status | 'all'
   assignee: string
   priority: Priority | 'all'
+  tag: string
 }

@@ -3,13 +3,16 @@ import type { FilterState, Status, Priority } from '../types'
 interface Props {
   filter: FilterState
   assignees: string[]
+  tags: string[]
   onChange: (f: FilterState) => void
 }
 
-export function FilterBar({ filter, assignees, onChange }: Props) {
+export function FilterBar({ filter, assignees, tags, onChange }: Props) {
   function set<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     onChange({ ...filter, [key]: value })
   }
+
+  const isActive = filter.search || filter.status !== 'all' || filter.priority !== 'all' || filter.assignee || filter.tag
 
   return (
     <div className="flex flex-wrap gap-2 items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
@@ -54,9 +57,22 @@ export function FilterBar({ filter, assignees, onChange }: Props) {
         ))}
       </select>
 
-      {(filter.search || filter.status !== 'all' || filter.priority !== 'all' || filter.assignee) && (
+      {tags.length > 0 && (
+        <select
+          value={filter.tag}
+          onChange={e => set('tag', e.target.value)}
+          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        >
+          <option value="">All tags</option>
+          {tags.map(t => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      )}
+
+      {isActive && (
         <button
-          onClick={() => onChange({ search: '', status: 'all', assignee: '', priority: 'all' })}
+          onClick={() => onChange({ search: '', status: 'all', assignee: '', priority: 'all', tag: '' })}
           className="text-sm text-gray-400 hover:text-red-500 transition-colors"
         >
           Clear

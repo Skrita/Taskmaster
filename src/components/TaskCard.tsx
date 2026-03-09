@@ -13,6 +13,37 @@ const PRIORITY_LABEL: Record<Priority, string> = {
   low: 'Low',
 }
 
+const TAG_COLORS = [
+  'bg-blue-50 text-blue-600 border-blue-200',
+  'bg-violet-50 text-violet-600 border-violet-200',
+  'bg-teal-50 text-teal-600 border-teal-200',
+  'bg-orange-50 text-orange-600 border-orange-200',
+  'bg-rose-50 text-rose-600 border-rose-200',
+  'bg-cyan-50 text-cyan-600 border-cyan-200',
+]
+
+export function tagColor(tag: string): string {
+  let hash = 0
+  for (let i = 0; i < tag.length; i++) hash = tag.charCodeAt(i) + hash * 31
+  return TAG_COLORS[Math.abs(hash) % TAG_COLORS.length]
+}
+
+function dueDateLabel(dueDate: string): { text: string; className: string } {
+  const due = new Date(dueDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  due.setHours(0, 0, 0, 0)
+  const diff = Math.round((due.getTime() - today.getTime()) / 86400000)
+
+  if (diff < 0) return { text: `${Math.abs(diff)}d overdue`, className: 'text-red-500' }
+  if (diff === 0) return { text: 'Due today', className: 'text-orange-500' }
+  if (diff === 1) return { text: 'Due tomorrow', className: 'text-yellow-600' }
+  return {
+    text: `Due ${due.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`,
+    className: 'text-gray-400',
+  }
+}
+
 interface Props {
   task: Task
   onClick: () => void
@@ -21,6 +52,7 @@ interface Props {
 export function TaskCard({ task, onClick }: Props) {
   const doneSubs = task.subtasks.filter(s => s.completed).length
   const totalSubs = task.subtasks.length
+  const due = task.dueDate ? dueDateLabel(task.dueDate) : null
 
   return (
     <div
@@ -37,6 +69,16 @@ export function TaskCard({ task, onClick }: Props) {
 
       {task.description && (
         <p className="text-xs text-gray-400 line-clamp-2 mb-2">{task.description}</p>
+      )}
+
+      {task.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {task.tags.map(tag => (
+            <span key={tag} className={`text-xs px-1.5 py-0.5 rounded border font-medium ${tagColor(tag)}`}>
+              {tag}
+            </span>
+          ))}
+        </div>
       )}
 
       <div className="flex items-center justify-between gap-2 mt-2">
@@ -59,17 +101,20 @@ export function TaskCard({ task, onClick }: Props) {
           )}
         </div>
 
-        {totalSubs > 0 && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-400 rounded-full"
-                style={{ width: `${(doneSubs / totalSubs) * 100}%` }}
-              />
+        <div className="flex items-center gap-2">
+          {due && <span className={`text-xs font-medium ${due.className}`}>{due.text}</span>}
+          {totalSubs > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-400 rounded-full"
+                  style={{ width: `${(doneSubs / totalSubs) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-400">{doneSubs}/{totalSubs}</span>
             </div>
-            <span className="text-xs text-gray-400">{doneSubs}/{totalSubs}</span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

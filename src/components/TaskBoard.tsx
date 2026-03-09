@@ -12,7 +12,7 @@ const COLUMNS: { status: Status; label: string; color: string; dot: string }[] =
 interface Props {
   tasks: Task[]
   onCardClick: (task: Task) => void
-  onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignees: string[] }) => void
+  onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignees: string[]; tags: string[]; dueDate?: string }) => void
   onStatusDrop: (taskId: string, status: Status) => void
 }
 
