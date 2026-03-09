@@ -12,7 +12,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm text-center">
         <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">T</div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">TaskmAister</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">TaskmAIster</h1>
         <p className="text-sm text-gray-400 mb-8">Sign in with your Addvery account</p>
 
         <button

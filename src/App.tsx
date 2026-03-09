@@ -39,6 +39,14 @@ function TaskApp() {
     return <ProfileSetup email={email} onSave={handleProfileSave} />
   }
 
+  if (store.loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-400 text-sm">Loading tasks...</div>
+      </div>
+    )
+  }
+
   const liveSelectedTask = selectedTask
     ? store.tasks.find(t => t.id === selectedTask.id) ?? null
     : null
@@ -64,7 +72,7 @@ function TaskApp() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
-          <h1 className="text-lg font-bold text-gray-900">TaskmAister</h1>
+          <h1 className="text-lg font-bold text-gray-900">TaskmAIster</h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 text-sm text-gray-400">
