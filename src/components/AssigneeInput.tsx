@@ -6,18 +6,26 @@ interface Props {
   placeholder?: string
 }
 
-const AVATAR_COLORS = [
-  'bg-purple-100 text-purple-700',
-  'bg-blue-100 text-blue-700',
-  'bg-green-100 text-green-700',
-  'bg-orange-100 text-orange-700',
-  'bg-pink-100 text-pink-700',
+export const AVATAR_COLOR_OPTIONS = [
+  { id: 'purple', classes: 'bg-purple-100 text-purple-700' },
+  { id: 'blue',   classes: 'bg-blue-100 text-blue-700' },
+  { id: 'green',  classes: 'bg-green-100 text-green-700' },
+  { id: 'orange', classes: 'bg-orange-100 text-orange-700' },
+  { id: 'pink',   classes: 'bg-pink-100 text-pink-700' },
+  { id: 'teal',   classes: 'bg-teal-100 text-teal-700' },
+  { id: 'red',    classes: 'bg-red-100 text-red-700' },
+  { id: 'yellow', classes: 'bg-yellow-100 text-yellow-700' },
 ]
 
 export function avatarColor(name: string): string {
+  const storedId = localStorage.getItem(`taskmaster-color-${name}`)
+  if (storedId) {
+    const match = AVATAR_COLOR_OPTIONS.find(c => c.id === storedId)
+    if (match) return match.classes
+  }
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + hash * 31
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+  return AVATAR_COLOR_OPTIONS[Math.abs(hash) % AVATAR_COLOR_OPTIONS.length].classes
 }
 
 export function AssigneeInput({ assignees, onChange, placeholder = 'Add assignee...' }: Props) {

@@ -82,19 +82,17 @@ export function TaskCard({ task, onClick }: Props) {
       )}
 
       <div className="flex items-center justify-between gap-2 mt-2">
-        <div className="flex items-center gap-1">
-          {task.assignees.slice(0, 4).map((name, i) => (
-            <div
+        <div className="flex items-center gap-1 flex-wrap">
+          {task.assignees.slice(0, 3).map(name => (
+            <span
               key={name}
-              className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center -ml-1 first:ml-0 ring-1 ring-white ${avatarColor(name)}`}
-              title={name}
-              style={{ zIndex: i }}
+              className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${avatarColor(name)}`}
             >
-              {name.charAt(0).toUpperCase()}
-            </div>
+              {name}
+            </span>
           ))}
-          {task.assignees.length > 4 && (
-            <span className="text-xs text-gray-400 ml-1">+{task.assignees.length - 4}</span>
+          {task.assignees.length > 3 && (
+            <span className="text-xs text-gray-400">+{task.assignees.length - 3}</span>
           )}
           {task.comments.length > 0 && (
             <span className="text-xs text-gray-400 ml-1">💬 {task.comments.length}</span>

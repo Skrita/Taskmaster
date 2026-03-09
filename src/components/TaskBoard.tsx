@@ -38,7 +38,7 @@ export function TaskBoard({ tasks, onCardClick, onAddTask, onStatusDrop }: Props
         return (
           <div
             key={col.status}
-            className={`flex flex-col min-w-64 w-64 shrink-0 bg-gray-50 rounded-2xl border-t-4 ${col.color} transition-colors ${dragOver === col.status ? 'bg-purple-50 ring-2 ring-purple-300' : ''}`}
+            className={`flex flex-col flex-1 min-w-56 bg-gray-50 rounded-2xl border-t-4 ${col.color} transition-colors ${dragOver === col.status ? 'bg-purple-50 ring-2 ring-purple-300' : ''}`}
             onDragOver={e => { e.preventDefault(); setDragOver(col.status) }}
             onDragLeave={() => setDragOver(null)}
             onDrop={e => handleDrop(e, col.status)}

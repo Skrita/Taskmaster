@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react'
 import { useTaskStore } from './hooks/useTaskStore'
 import { FilterBar } from './components/FilterBar'
@@ -6,6 +6,8 @@ import { TaskBoard } from './components/TaskBoard'
 import { TaskModal } from './components/TaskModal'
 import { LoginPage } from './components/LoginPage'
 import { ProfileSetup } from './components/ProfileSetup'
+import { ActivityPanel } from './components/ActivityPanel'
+import { AVATAR_COLOR_OPTIONS, avatarColor } from './components/AssigneeInput'
 import type { Task, Status, FilterState } from './types'
 
 function TaskApp() {
@@ -14,11 +16,25 @@ function TaskApp() {
   const email = account?.username ?? ''
 
   const profileKey = `taskmaster-profile-${email}`
-  const savedUsername = localStorage.getItem(profileKey)
+  const savedUsername = localStorage.getItem(profileKey) ?? (import.meta.env.DEV ? 'Dev' : null)
   const [username, setUsername] = useState<string | null>(savedUsername)
 
-  const store = useTaskStore()
+  const store = useTaskStore(username ?? '')
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [showActivity, setShowActivity] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [, setColorVersion] = useState(0)
+  const colorPickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
+        setShowColorPicker(false)
+      }
+    }
+    if (showColorPicker) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showColorPicker])
   const [filter, setFilter] = useState<FilterState>({
     search: '',
     status: 'all',
@@ -34,18 +50,6 @@ function TaskApp() {
 
   function handleLogout() {
     instance.logoutRedirect()
-  }
-
-  if (!username) {
-    return <ProfileSetup email={email} onSave={handleProfileSave} />
-  }
-
-  if (store.loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading tasks...</div>
-      </div>
-    )
   }
 
   const liveSelectedTask = selectedTask
@@ -74,6 +78,26 @@ function TaskApp() {
     })
   }, [store.tasks, filter])
 
+  if (!username) {
+    return <ProfileSetup email={email} onSave={handleProfileSave} />
+  }
+
+  if (store.loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-400 text-sm">Loading tasks...</div>
+      </div>
+    )
+  }
+
+  function handleActivityTaskClick(taskId: string) {
+    const task = store.tasks.find(t => t.id === taskId)
+    if (task) {
+      setSelectedTask(task)
+      setShowActivity(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
@@ -87,14 +111,61 @@ function TaskApp() {
             <span>·</span>
             <span>{store.tasks.filter(t => t.status === 'done').length} done</span>
           </div>
+          <button
+            onClick={() => setShowActivity(v => !v)}
+            className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+              showActivity
+                ? 'bg-purple-100 text-purple-700'
+                : 'text-gray-500 hover:bg-gray-100'
+            }`}
+            title="Activity log"
+          >
+            <span className="text-base leading-none">⚡</span>
+            <span className="hidden sm:inline">Activity</span>
+            {store.activities.length > 0 && (
+              <span className="bg-purple-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none min-w-5 text-center">
+                {store.activities.length > 99 ? '99+' : store.activities.length}
+              </span>
+            )}
+          </button>
           <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
-            <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
-              {username.charAt(0).toUpperCase()}
+            <div className="relative" ref={colorPickerRef}>
+              <button
+                onClick={() => setShowColorPicker(v => !v)}
+                className={`text-xs font-bold px-2 py-0.5 rounded-full transition-colors ${username ? avatarColor(username) : ''}`}
+                title="Choose your colour"
+              >
+                {username.charAt(0).toUpperCase()}{username.slice(1)}
+              </button>
+              {showColorPicker && (
+                <div className="absolute right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-50 w-48">
+                  <p className="text-xs text-gray-400 mb-2 font-medium">Your colour</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {AVATAR_COLOR_OPTIONS.map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => {
+                          localStorage.setItem(`taskmaster-color-${username}`, opt.id)
+                          setColorVersion(v => v + 1)
+                          setShowColorPicker(false)
+                        }}
+                        className={`text-xs font-bold px-1.5 py-1 rounded-full ${opt.classes} ring-2 ${
+                          localStorage.getItem(`taskmaster-color-${username}`) === opt.id
+                            ? 'ring-gray-400'
+                            : 'ring-transparent'
+                        } hover:ring-gray-300 transition-all`}
+                        title={opt.id}
+                      >
+                        {username.charAt(0).toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <span className="text-sm font-medium text-gray-700">{username}</span>
             <button
               onClick={handleLogout}
-              className="text-xs text-gray-400 hover:text-gray-600 ml-1 transition-colors"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
             >
               Sign out
             </button>
@@ -127,6 +198,14 @@ function TaskApp() {
           onAddComment={store.addComment}
         />
       )}
+
+      {showActivity && (
+        <ActivityPanel
+          activities={store.activities}
+          onClose={() => setShowActivity(false)}
+          onTaskClick={handleActivityTaskClick}
+        />
+      )}
     </div>
   )
 }
@@ -137,6 +216,10 @@ export default function App() {
   useMemo(() => {
     instance.handleRedirectPromise().catch(() => {})
   }, [instance])
+
+  if (import.meta.env.DEV) {
+    return <TaskApp />
+  }
 
   return (
     <>

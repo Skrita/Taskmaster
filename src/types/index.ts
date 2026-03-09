@@ -36,3 +36,13 @@ export interface FilterState {
   priority: Priority | 'all'
   tag: string
 }
+
+export interface ActivityLog {
+  id: string
+  taskId: string | null
+  taskTitle: string | null
+  actor: string
+  action: string
+  detail?: string
+  createdAt: string
+}
