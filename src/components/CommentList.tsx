@@ -4,6 +4,7 @@ import type { Comment } from '../types'
 interface Props {
   comments: Comment[]
   onAdd: (author: string, text: string) => void
+  onConvertToSubtask?: (text: string) => void
 }
 
 function timeAgo(iso: string): string {
@@ -14,7 +15,7 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 86400)}d ago`
 }
 
-export function CommentList({ comments, onAdd }: Props) {
+export function CommentList({ comments, onAdd, onConvertToSubtask }: Props) {
   const [author, setAuthor] = useState('')
   const [text, setText] = useState('')
 
@@ -34,7 +35,7 @@ export function CommentList({ comments, onAdd }: Props) {
 
       <ul className="space-y-3 mb-4">
         {comments.map(c => (
-          <li key={c.id} className="flex gap-3">
+          <li key={c.id} className="flex gap-3 group">
             <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
               {c.author.charAt(0).toUpperCase()}
             </div>
@@ -42,6 +43,15 @@ export function CommentList({ comments, onAdd }: Props) {
               <div className="flex items-baseline gap-2 mb-0.5">
                 <span className="text-sm font-medium text-gray-800">{c.author}</span>
                 <span className="text-xs text-gray-400">{timeAgo(c.createdAt)}</span>
+                {onConvertToSubtask && (
+                  <button
+                    onClick={() => onConvertToSubtask(c.text)}
+                    title="Convert to subtask"
+                    className="opacity-0 group-hover:opacity-100 ml-auto text-xs text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-all"
+                  >
+                    + subtask
+                  </button>
+                )}
               </div>
               <p className="text-sm text-gray-600 whitespace-pre-wrap">{c.text}</p>
             </div>

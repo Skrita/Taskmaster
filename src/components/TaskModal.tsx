@@ -201,6 +201,7 @@ export function TaskModal({
           <CommentList
             comments={task.comments}
             onAdd={(author, text) => onAddComment(task.id, author, text)}
+            onConvertToSubtask={text => onAddSubtask(task.id, text)}
           />
         </div>
       </div>
