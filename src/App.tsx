@@ -1,11 +1,22 @@
 import { useState, useMemo } from 'react'
+import { useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react'
 import { useTaskStore } from './hooks/useTaskStore'
 import { FilterBar } from './components/FilterBar'
 import { TaskBoard } from './components/TaskBoard'
 import { TaskModal } from './components/TaskModal'
+import { LoginPage } from './components/LoginPage'
+import { ProfileSetup } from './components/ProfileSetup'
 import type { Task, Status, FilterState } from './types'
 
-export default function App() {
+function TaskApp() {
+  const { accounts, instance } = useMsal()
+  const account = accounts[0]
+  const email = account?.username ?? ''
+
+  const profileKey = `taskmaster-profile-${email}`
+  const savedUsername = localStorage.getItem(profileKey)
+  const [username, setUsername] = useState<string | null>(savedUsername)
+
   const store = useTaskStore()
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [filter, setFilter] = useState<FilterState>({
@@ -14,6 +25,19 @@ export default function App() {
     assignee: '',
     priority: 'all',
   })
+
+  function handleProfileSave(name: string) {
+    localStorage.setItem(profileKey, name)
+    setUsername(name)
+  }
+
+  function handleLogout() {
+    instance.logoutRedirect()
+  }
+
+  if (!username) {
+    return <ProfileSetup email={email} onSave={handleProfileSave} />
+  }
 
   const liveSelectedTask = selectedTask
     ? store.tasks.find(t => t.id === selectedTask.id) ?? null
@@ -37,27 +61,36 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Top bar */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
-          <h1 className="text-lg font-bold text-gray-900">
-            TaskmAister
-          </h1>
+          <h1 className="text-lg font-bold text-gray-900">TaskmAister</h1>
         </div>
-        <div className="flex items-center gap-3 text-sm text-gray-400">
-          <span>{store.tasks.length} tasks</span>
-          <span>·</span>
-          <span>{store.tasks.filter(t => t.status === 'done').length} done</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 text-sm text-gray-400">
+            <span>{store.tasks.length} tasks</span>
+            <span>·</span>
+            <span>{store.tasks.filter(t => t.status === 'done').length} done</span>
+          </div>
+          <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+            <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-sm font-medium text-gray-700">{username}</span>
+            <button
+              onClick={handleLogout}
+              className="text-xs text-gray-400 hover:text-gray-600 ml-1 transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Filter bar */}
       <div className="px-6 py-3 shrink-0">
         <FilterBar filter={filter} assignees={assignees} onChange={setFilter} />
       </div>
 
-      {/* Board */}
       <main className="flex-1 px-6 pb-6 flex overflow-hidden">
         <TaskBoard
           tasks={filtered}
@@ -80,5 +113,24 @@ export default function App() {
         />
       )}
     </div>
+  )
+}
+
+export default function App() {
+  // Handle redirect callback (MSAL stores state during redirect)
+  const { instance } = useMsal()
+  useMemo(() => {
+    instance.handleRedirectPromise().catch(() => {})
+  }, [instance])
+
+  return (
+    <>
+      <AuthenticatedTemplate>
+        <TaskApp />
+      </AuthenticatedTemplate>
+      <UnauthenticatedTemplate>
+        <LoginPage />
+      </UnauthenticatedTemplate>
+    </>
   )
 }
