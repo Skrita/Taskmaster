@@ -25,7 +25,7 @@ function renderCommentText(text: string, knownUsers: string[]) {
       const name = part.slice(1)
       return knownUsers.includes(name)
         ? <span key={i} className={`inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded-full ${avatarColor(name)}`}>{part}</span>
-        : <span key={i} className="font-semibold text-blue-600">{part}</span>
+        : <span key={i} className="font-semibold text-violet-400">{part}</span>
     }
     return <span key={i}>{part}</span>
   })
@@ -79,10 +79,10 @@ export function CommentList({ comments, knownUsers, currentUser, onAdd, onConver
 
   return (
     <div>
-      <h3 className="font-semibold text-gray-700 mb-3">Comments</h3>
+      <h3 className="font-semibold text-slate-300 mb-3">Comments</h3>
 
       {comments.length === 0 && (
-        <p className="text-sm text-gray-400 mb-3">No comments yet.</p>
+        <p className="text-sm text-slate-600 mb-3">No comments yet.</p>
       )}
 
       <ul className="space-y-3 mb-4">
@@ -93,19 +93,19 @@ export function CommentList({ comments, knownUsers, currentUser, onAdd, onConver
             </div>
             <div className="flex-1">
               <div className="flex items-baseline gap-2 mb-0.5">
-                <span className="text-sm font-medium text-gray-800">{c.author}</span>
-                <span className="text-xs text-gray-400">{timeAgo(c.createdAt)}</span>
+                <span className="text-sm font-medium text-slate-200">{c.author}</span>
+                <span className="text-xs text-slate-500">{timeAgo(c.createdAt)}</span>
                 {onConvertToSubtask && (
                   <button
                     onClick={() => onConvertToSubtask(c.text)}
                     title="Convert to subtask"
-                    className="opacity-0 group-hover:opacity-100 ml-auto text-xs text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-1.5 py-0.5 rounded transition-all"
+                    className="opacity-0 group-hover:opacity-100 ml-auto text-xs text-violet-400 hover:text-violet-300 hover:bg-violet-900/40 px-1.5 py-0.5 rounded transition-all"
                   >
                     + subtask
                   </button>
                 )}
               </div>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+              <p className="text-sm text-slate-400 whitespace-pre-wrap leading-relaxed">
                 {renderCommentText(c.text, knownUsers)}
               </p>
             </div>
@@ -115,17 +115,17 @@ export function CommentList({ comments, knownUsers, currentUser, onAdd, onConver
 
       <div className="relative space-y-2">
         {suggestions.length > 0 && (
-          <div className="absolute bottom-full mb-1 left-0 right-12 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-10">
+          <div className="absolute bottom-full mb-1 left-0 right-12 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-10">
             {suggestions.map(name => (
               <button
                 key={name}
                 onMouseDown={e => { e.preventDefault(); insertMention(name) }}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-700 text-left transition-colors"
               >
                 <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${avatarColor(name)}`}>
                   {name.charAt(0).toUpperCase()}
                 </span>
-                <span className="text-sm text-gray-700">{name}</span>
+                <span className="text-sm text-slate-300">{name}</span>
               </button>
             ))}
           </div>
@@ -138,11 +138,11 @@ export function CommentList({ comments, knownUsers, currentUser, onAdd, onConver
             onKeyDown={handleKeyDown}
             placeholder={`Comment as ${currentUser}… type @ to mention (Ctrl+Enter to post)`}
             rows={2}
-            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            className="flex-1 text-sm bg-slate-800 border border-slate-700 text-slate-300 placeholder:text-slate-600 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
           />
           <button
             onClick={handleAdd}
-            className="text-sm bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 font-medium transition-colors self-end pb-1.5 pt-1.5"
+            className="text-sm bg-violet-600 text-white hover:bg-violet-500 rounded-lg px-4 font-medium transition-colors self-end pb-1.5 pt-1.5"
           >
             Post
           </button>

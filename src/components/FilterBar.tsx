@@ -17,20 +17,20 @@ export function FilterBar({ filter, assignees, tags, onChange, searchRef }: Prop
   const isActive = filter.search || filter.status !== 'all' || filter.priority !== 'all' || filter.assignee || filter.tag
 
   return (
-    <div className="flex flex-wrap gap-2 items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+    <div className="flex flex-wrap gap-2 items-center bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
       <input
         ref={searchRef}
         type="text"
         placeholder="Search tasks... ( / )"
         value={filter.search}
         onChange={e => set('search', e.target.value)}
-        className="flex-1 min-w-40 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className="flex-1 min-w-40 text-sm bg-slate-800 border border-slate-700 text-slate-300 placeholder:text-slate-600 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
       />
 
       <select
         value={filter.status}
         onChange={e => set('status', e.target.value as Status | 'all')}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
       >
         <option value="all">All statuses</option>
         <option value="todo">Todo</option>
@@ -41,7 +41,7 @@ export function FilterBar({ filter, assignees, tags, onChange, searchRef }: Prop
       <select
         value={filter.priority}
         onChange={e => set('priority', e.target.value as Priority | 'all')}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
       >
         <option value="all">All priorities</option>
         <option value="high">High</option>
@@ -52,7 +52,7 @@ export function FilterBar({ filter, assignees, tags, onChange, searchRef }: Prop
       <select
         value={filter.assignee}
         onChange={e => set('assignee', e.target.value)}
-        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
       >
         <option value="">All assignees</option>
         {assignees.map(a => (
@@ -64,7 +64,7 @@ export function FilterBar({ filter, assignees, tags, onChange, searchRef }: Prop
         <select
           value={filter.tag}
           onChange={e => set('tag', e.target.value)}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
         >
           <option value="">All tags</option>
           {tags.map(t => (
@@ -76,7 +76,7 @@ export function FilterBar({ filter, assignees, tags, onChange, searchRef }: Prop
       {isActive && (
         <button
           onClick={() => onChange({ search: '', status: 'all', assignee: '', priority: 'all', tag: '' })}
-          className="text-sm text-gray-400 hover:text-red-500 transition-colors"
+          className="text-sm text-slate-500 hover:text-red-400 transition-colors"
         >
           Clear
         </button>

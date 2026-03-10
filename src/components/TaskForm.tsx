@@ -56,6 +56,9 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
     })
   }
 
+  const inputCls = "w-full text-sm bg-slate-700 border border-slate-600 text-slate-200 placeholder:text-slate-500 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500"
+  const selectCls = "flex-1 text-sm bg-slate-700 border border-slate-600 text-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500"
+
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <input
@@ -64,7 +67,7 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         placeholder="Task title *"
         value={data.title}
         onChange={e => set('title', e.target.value)}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        className={inputCls}
       />
 
       <textarea
@@ -72,14 +75,14 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         value={data.description}
         onChange={e => set('description', e.target.value)}
         rows={2}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+        className={`${inputCls} resize-none`}
       />
 
       <div className="flex gap-2">
         <select
           value={data.status}
           onChange={e => set('status', e.target.value as Status)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className={selectCls}
         >
           <option value="todo">Todo</option>
           <option value="in-progress">In Progress</option>
@@ -89,7 +92,7 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         <select
           value={data.priority}
           onChange={e => set('priority', e.target.value as Priority)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className={selectCls}
         >
           <option value="high">High priority</option>
           <option value="medium">Medium priority</option>
@@ -101,7 +104,7 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         type="date"
         value={data.dueDate}
         onChange={e => set('dueDate', e.target.value)}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 text-gray-500"
+        className={inputCls}
       />
 
       <AssigneeInput
@@ -110,7 +113,7 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
         placeholder="Add assignees (Enter or comma to add)..."
       />
 
-      <div className="flex flex-wrap gap-1.5 items-center border border-gray-200 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-purple-400 min-h-9">
+      <div className="flex flex-wrap gap-1.5 items-center bg-slate-700 border border-slate-600 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-violet-500 min-h-9">
         {data.tags.map(tag => (
           <span key={tag} className={`flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded border ${tagColor(tag)}`}>
             {tag}
@@ -127,21 +130,21 @@ export function TaskForm({ defaultStatus = 'todo', onSubmit, onCancel }: Props) 
           }}
           onBlur={() => addTag(tagInput)}
           placeholder={data.tags.length === 0 ? 'Add tags (Enter or comma)...' : ''}
-          className="flex-1 min-w-24 text-sm focus:outline-none bg-transparent"
+          className="flex-1 min-w-24 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none bg-transparent"
         />
       </div>
 
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
-          className="flex-1 bg-purple-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-purple-600 transition-colors"
+          className="flex-1 bg-violet-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-violet-500 transition-colors"
         >
           Create Task
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 text-sm text-gray-500 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="px-4 text-sm text-slate-500 py-2 rounded-lg hover:bg-slate-700 transition-colors"
         >
           Cancel
         </button>

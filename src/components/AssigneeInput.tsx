@@ -52,7 +52,7 @@ export function AssigneeInput({ assignees, onChange, placeholder = 'Add assignee
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5 items-center border border-gray-200 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-purple-400 min-h-9">
+    <div className="flex flex-wrap gap-1.5 items-center bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-violet-500 min-h-9">
       {assignees.map(name => (
         <span key={name} className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${avatarColor(name)}`}>
           {name}
@@ -72,7 +72,7 @@ export function AssigneeInput({ assignees, onChange, placeholder = 'Add assignee
         onKeyDown={handleKey}
         onBlur={() => addName(input)}
         placeholder={assignees.length === 0 ? placeholder : ''}
-        className="flex-1 min-w-24 text-sm focus:outline-none bg-transparent"
+        className="flex-1 min-w-24 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none bg-transparent"
       />
     </div>
   )

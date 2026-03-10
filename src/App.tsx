@@ -120,8 +120,8 @@ function TaskApp() {
 
   if (store.loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading tasks...</div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-500 text-sm">Loading tasks...</div>
       </div>
     )
   }
@@ -135,47 +135,48 @@ function TaskApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
-          <h1 className="text-lg font-bold text-gray-900">TaskmAIster</h1>
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      <header className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-violet-900/40">T</div>
+          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">TaskmAIster</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 text-sm text-gray-400">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex items-center gap-3 text-sm text-slate-500">
             <span>{store.tasks.length} tasks</span>
             <span>·</span>
             <span>{store.tasks.filter(t => t.status === 'done').length} done</span>
           </div>
           <button
             onClick={() => setShowActivity(v => !v)}
-            className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg transition-colors ${
               showActivity
-                ? 'bg-purple-100 text-purple-700'
-                : 'text-gray-500 hover:bg-gray-100'
+                ? 'bg-violet-900/60 text-violet-300'
+                : 'text-slate-400 hover:bg-slate-800'
             }`}
             title="Activity log"
           >
             <span className="text-base leading-none">⚡</span>
             <span className="hidden sm:inline">Activity</span>
             {store.activities.length > 0 && (
-              <span className="bg-purple-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none min-w-5 text-center">
+              <span className="bg-violet-600 text-white text-xs rounded-full px-1.5 py-0.5 leading-none min-w-5 text-center">
                 {store.activities.length > 99 ? '99+' : store.activities.length}
               </span>
             )}
           </button>
-          <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+          <div className="flex items-center gap-2 border-l border-slate-800 pl-3 sm:pl-4">
             <div className="relative" ref={colorPickerRef}>
               <button
                 onClick={() => setShowColorPicker(v => !v)}
                 className={`text-xs font-bold px-2 py-0.5 rounded-full transition-colors ${username ? avatarColor(username) : ''}`}
                 title="Choose your colour"
               >
-                {username.charAt(0).toUpperCase()}{username.slice(1)}
+                <span className="sm:hidden">{username.charAt(0).toUpperCase()}</span>
+                <span className="hidden sm:inline">{username.charAt(0).toUpperCase()}{username.slice(1)}</span>
               </button>
               {showColorPicker && (
-                <div className="absolute right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-50 w-48">
-                  <p className="text-xs text-gray-400 mb-2 font-medium">Your colour</p>
+                <div className="absolute right-0 top-full mt-1.5 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-3 z-50 w-48">
+                  <p className="text-xs text-slate-400 mb-2 font-medium">Your colour</p>
                   <div className="grid grid-cols-4 gap-1.5">
                     {AVATAR_COLOR_OPTIONS.map(opt => (
                       <button
@@ -187,9 +188,9 @@ function TaskApp() {
                         }}
                         className={`text-xs font-bold px-1.5 py-1 rounded-full ${opt.classes} ring-2 ${
                           localStorage.getItem(`taskmaster-color-${username}`) === opt.id
-                            ? 'ring-gray-400'
+                            ? 'ring-slate-400'
                             : 'ring-transparent'
-                        } hover:ring-gray-300 transition-all`}
+                        } hover:ring-slate-500 transition-all`}
                         title={opt.id}
                       >
                         {username.charAt(0).toUpperCase()}
@@ -201,7 +202,7 @@ function TaskApp() {
             </div>
             <button
               onClick={handleLogout}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
             >
               Sign out
             </button>
@@ -209,11 +210,11 @@ function TaskApp() {
         </div>
       </header>
 
-      <div className="px-6 py-3 shrink-0">
+      <div className="px-3 sm:px-6 py-2 sm:py-3 shrink-0">
         <FilterBar filter={filter} assignees={assignees} tags={allTags} onChange={setFilter} searchRef={searchInputRef} />
       </div>
 
-      <main className="flex-1 px-6 pb-6 flex overflow-hidden">
+      <main className="flex-1 px-3 sm:px-6 pb-4 sm:pb-6 flex overflow-hidden">
         <TaskBoard
           tasks={filtered}
           triggerAdd={triggerAdd}
