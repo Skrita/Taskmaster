@@ -25,6 +25,7 @@ export interface Task {
   dueDate?: string
   subtasks: Subtask[]
   comments: Comment[]
+  position: number
   createdAt: string
   updatedAt: string
 }

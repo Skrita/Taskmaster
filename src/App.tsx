@@ -8,7 +8,7 @@ import { LoginPage } from './components/LoginPage'
 import { ProfileSetup } from './components/ProfileSetup'
 import { ActivityPanel } from './components/ActivityPanel'
 import { AVATAR_COLOR_OPTIONS, avatarColor } from './components/AssigneeInput'
-import type { Task, Status, FilterState } from './types'
+import type { Task, FilterState } from './types'
 
 function TaskApp() {
   const { accounts, instance } = useMsal()
@@ -24,7 +24,9 @@ function TaskApp() {
   const [showActivity, setShowActivity] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [, setColorVersion] = useState(0)
+  const [triggerAdd, setTriggerAdd] = useState(0)
   const colorPickerRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -35,6 +37,31 @@ function TaskApp() {
     if (showColorPicker) document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [showColorPicker])
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+
+      if (e.key === 'Escape') {
+        if (selectedTask) setSelectedTask(null)
+        else if (showActivity) setShowActivity(false)
+        else if (showColorPicker) setShowColorPicker(false)
+        return
+      }
+      if (isInput) return
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault()
+        setTriggerAdd(v => v + 1)
+      }
+      if (e.key === '/') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [selectedTask, showActivity, showColorPicker])
   const [filter, setFilter] = useState<FilterState>({
     search: '',
     status: 'all',
@@ -59,6 +86,15 @@ function TaskApp() {
   const assignees = useMemo(
     () => [...new Set(store.tasks.flatMap(t => t.assignees).filter(Boolean))].sort(),
     [store.tasks]
+  )
+
+  const knownUsers = useMemo(
+    () => [...new Set([
+      ...store.tasks.flatMap(t => t.assignees),
+      ...store.tasks.flatMap(t => t.comments.map(c => c.author)),
+      ...(username ? [username] : []),
+    ].filter(Boolean))].sort(),
+    [store.tasks, username]
   )
 
   const allTags = useMemo(
@@ -174,21 +210,24 @@ function TaskApp() {
       </header>
 
       <div className="px-6 py-3 shrink-0">
-        <FilterBar filter={filter} assignees={assignees} tags={allTags} onChange={setFilter} />
+        <FilterBar filter={filter} assignees={assignees} tags={allTags} onChange={setFilter} searchRef={searchInputRef} />
       </div>
 
       <main className="flex-1 px-6 pb-6 flex overflow-hidden">
         <TaskBoard
           tasks={filtered}
+          triggerAdd={triggerAdd}
           onCardClick={task => setSelectedTask(task)}
           onAddTask={fields => store.addTask(fields)}
-          onStatusDrop={(taskId, status: Status) => store.updateTask(taskId, { status })}
+          onReorder={(taskId, beforeTaskId, status) => store.reorderTask(taskId, beforeTaskId, status)}
         />
       </main>
 
       {liveSelectedTask && (
         <TaskModal
           task={liveSelectedTask}
+          knownUsers={knownUsers}
+          currentUser={username}
           onClose={() => setSelectedTask(null)}
           onUpdate={store.updateTask}
           onDelete={store.deleteTask}

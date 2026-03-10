@@ -19,6 +19,8 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 
 interface Props {
   task: Task
+  knownUsers: string[]
+  currentUser: string
   onClose: () => void
   onUpdate: (id: string, fields: Partial<Task>) => void
   onDelete: (id: string) => void
@@ -30,6 +32,8 @@ interface Props {
 
 export function TaskModal({
   task,
+  knownUsers,
+  currentUser,
   onClose,
   onUpdate,
   onDelete,
@@ -279,6 +283,8 @@ export function TaskModal({
 
           <CommentList
             comments={task.comments}
+            knownUsers={knownUsers}
+            currentUser={currentUser}
             onAdd={(author, text) => onAddComment(task.id, author, text)}
             onConvertToSubtask={text => onAddSubtask(task.id, text)}
           />

@@ -1,34 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Task, Status } from '../types'
 import { TaskCard } from './TaskCard'
 import { TaskForm } from './TaskForm'
 
 const COLUMNS: { status: Status; label: string; color: string; dot: string }[] = [
-  { status: 'todo',        label: 'Todo',        color: 'border-t-gray-400', dot: 'bg-gray-400' },
-  { status: 'in-progress', label: 'In Progress', color: 'border-t-blue-500', dot: 'bg-blue-500' },
-  { status: 'done',        label: 'Done',        color: 'border-t-green-500',dot: 'bg-green-500'},
+  { status: 'todo',        label: 'Todo',        color: 'border-t-gray-400',   dot: 'bg-gray-400'   },
+  { status: 'in-progress', label: 'In Progress', color: 'border-t-blue-500',   dot: 'bg-blue-500'   },
+  { status: 'done',        label: 'Done',        color: 'border-t-green-500',  dot: 'bg-green-500'  },
 ]
 
 interface Props {
   tasks: Task[]
+  triggerAdd?: number
   onCardClick: (task: Task) => void
   onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignees: string[]; tags: string[]; dueDate?: string }) => void
-  onStatusDrop: (taskId: string, status: Status) => void
+  onReorder: (taskId: string, beforeTaskId: string | null, targetStatus: Status) => void
 }
 
-export function TaskBoard({ tasks, onCardClick, onAddTask, onStatusDrop }: Props) {
+export function TaskBoard({ tasks, triggerAdd, onCardClick, onAddTask, onReorder }: Props) {
   const [addingIn, setAddingIn] = useState<Status | null>(null)
-  const [dragOver, setDragOver] = useState<Status | null>(null)
+  const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [dragOverCardId, setDragOverCardId] = useState<string | null>(null)
+  const [dragOverStatus, setDragOverStatus] = useState<Status | null>(null)
 
-  function handleDragStart(e: React.DragEvent, taskId: string) {
-    e.dataTransfer.setData('taskId', taskId)
+  useEffect(() => {
+    if (triggerAdd) setAddingIn('todo')
+  }, [triggerAdd])
+
+  function handleDragEnd() {
+    setDraggedId(null)
+    setDragOverCardId(null)
+    setDragOverStatus(null)
   }
 
-  function handleDrop(e: React.DragEvent, status: Status) {
+  function handleColumnDrop(e: React.DragEvent, status: Status) {
     e.preventDefault()
     const taskId = e.dataTransfer.getData('taskId')
-    if (taskId) onStatusDrop(taskId, status)
-    setDragOver(null)
+    if (taskId) onReorder(taskId, null, status)
+    handleDragEnd()
+  }
+
+  function handleCardDrop(e: React.DragEvent, beforeTaskId: string, status: Status) {
+    e.preventDefault()
+    e.stopPropagation()
+    const taskId = e.dataTransfer.getData('taskId')
+    if (taskId && taskId !== beforeTaskId) onReorder(taskId, beforeTaskId, status)
+    handleDragEnd()
   }
 
   return (
@@ -38,10 +55,15 @@ export function TaskBoard({ tasks, onCardClick, onAddTask, onStatusDrop }: Props
         return (
           <div
             key={col.status}
-            className={`flex flex-col flex-1 min-w-56 bg-gray-50 rounded-2xl border-t-4 ${col.color} transition-colors ${dragOver === col.status ? 'bg-purple-50 ring-2 ring-purple-300' : ''}`}
-            onDragOver={e => { e.preventDefault(); setDragOver(col.status) }}
-            onDragLeave={() => setDragOver(null)}
-            onDrop={e => handleDrop(e, col.status)}
+            className={`flex flex-col flex-1 min-w-56 bg-gray-50 rounded-2xl border-t-4 ${col.color} transition-colors ${dragOverStatus === col.status && !dragOverCardId ? 'bg-purple-50 ring-2 ring-purple-300' : ''}`}
+            onDragOver={e => { e.preventDefault(); setDragOverStatus(col.status) }}
+            onDragLeave={e => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setDragOverStatus(null)
+                setDragOverCardId(null)
+              }
+            }}
+            onDrop={e => handleColumnDrop(e, col.status)}
           >
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
@@ -77,7 +99,12 @@ export function TaskBoard({ tasks, onCardClick, onAddTask, onStatusDrop }: Props
                 <div
                   key={task.id}
                   draggable
-                  onDragStart={e => handleDragStart(e, task.id)}
+                  onDragStart={e => { e.dataTransfer.setData('taskId', task.id); setDraggedId(task.id) }}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOverCardId(task.id); setDragOverStatus(col.status) }}
+                  onDragLeave={() => setDragOverCardId(null)}
+                  onDrop={e => handleCardDrop(e, task.id, col.status)}
+                  className={`border-t-2 transition-colors ${dragOverCardId === task.id && draggedId !== task.id ? 'border-blue-400' : 'border-transparent'}`}
                 >
                   <TaskCard task={task} onClick={() => onCardClick(task)} />
                 </div>

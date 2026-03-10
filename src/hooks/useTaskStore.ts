@@ -6,7 +6,6 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
-// Map Supabase row (snake_case) → Task (camelCase)
 function rowToTask(row: Record<string, unknown>): Task {
   return {
     id: row.id as string,
@@ -19,6 +18,7 @@ function rowToTask(row: Record<string, unknown>): Task {
     dueDate: (row.due_date as string) ?? undefined,
     subtasks: (row.subtasks as Subtask[]) ?? [],
     comments: (row.comments as Comment[]) ?? [],
+    position: (row.position as number) ?? 0,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }
@@ -41,14 +41,17 @@ export function useTaskStore(username: string) {
   const [loading, setLoading] = useState(true)
   const [activities, setActivities] = useState<ActivityLog[]>([])
 
-  // Initial fetch
   useEffect(() => {
     supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (!error && data) setTasks(data.map(rowToTask))
+        if (!error && data) {
+          const mapped = data.map(rowToTask)
+          mapped.sort((a, b) => (a.position || 0) - (b.position || 0) || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+          setTasks(mapped)
+        }
         setLoading(false)
       })
 
@@ -61,7 +64,6 @@ export function useTaskStore(username: string) {
         if (!error && data) setActivities(data.map(rowToActivity))
       })
 
-    // Real-time subscription — updates appear instantly for all users
     const taskChannel = supabase
       .channel('tasks-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
@@ -70,7 +72,11 @@ export function useTaskStore(username: string) {
           .select('*')
           .order('created_at', { ascending: false })
           .then(({ data, error }) => {
-            if (!error && data) setTasks(data.map(rowToTask))
+            if (!error && data) {
+              const mapped = data.map(rowToTask)
+              mapped.sort((a, b) => (a.position || 0) - (b.position || 0) || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+              setTasks(mapped)
+            }
           })
       })
       .subscribe()
@@ -89,12 +95,7 @@ export function useTaskStore(username: string) {
     }
   }, [])
 
-  async function logActivity(
-    action: string,
-    taskId: string | null,
-    taskTitle: string | null,
-    detail?: string,
-  ) {
+  async function logActivity(action: string, taskId: string | null, taskTitle: string | null, detail?: string) {
     const entry = {
       id: generateId(),
       task_id: taskId,
@@ -116,6 +117,9 @@ export function useTaskStore(username: string) {
     dueDate?: string
   }): Promise<Task> {
     const now = new Date().toISOString()
+    // Position at end of the target column
+    const colTasks = tasks.filter(t => t.status === fields.status)
+    const maxPos = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.position)) : 0
     const row = {
       id: generateId(),
       title: fields.title,
@@ -127,12 +131,13 @@ export function useTaskStore(username: string) {
       due_date: fields.dueDate ?? null,
       subtasks: [],
       comments: [],
+      position: maxPos + 1000,
       created_at: now,
       updated_at: now,
     }
     const { data } = await supabase.from('tasks').insert(row).select().single()
     const task = rowToTask(data ?? row)
-    setTasks(prev => [task, ...prev])
+    setTasks(prev => [...prev, task])
     logActivity('task_created', task.id, task.title)
     return task
   }
@@ -153,7 +158,6 @@ export function useTaskStore(username: string) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...fields, updatedAt: update.updated_at as string } : t))
     await supabase.from('tasks').update(update).eq('id', id)
 
-    // Log what changed
     if (fields.status !== undefined && existing?.status !== fields.status) {
       logActivity('status_changed', id, taskTitle, `${existing?.status} → ${fields.status}`)
     } else if (fields.priority !== undefined && existing?.priority !== fields.priority) {
@@ -167,6 +171,39 @@ export function useTaskStore(username: string) {
     } else if (fields.title !== undefined || fields.description !== undefined) {
       logActivity('task_edited', id, taskTitle)
     }
+  }
+
+  async function reorderTask(taskId: string, beforeTaskId: string | null, targetStatus: Status): Promise<void> {
+    const colTasks = tasks
+      .filter(t => t.status === targetStatus && t.id !== taskId)
+      .sort((a, b) => a.position - b.position)
+
+    let newPosition: number
+    if (beforeTaskId === null) {
+      const last = colTasks[colTasks.length - 1]
+      newPosition = last ? last.position + 1000 : 1000
+    } else {
+      const beforeIdx = colTasks.findIndex(t => t.id === beforeTaskId)
+      if (beforeIdx <= 0) {
+        newPosition = (colTasks[0]?.position ?? 1000) - 1000
+      } else {
+        newPosition = (colTasks[beforeIdx - 1].position + colTasks[beforeIdx].position) / 2
+      }
+    }
+
+    const existing = tasks.find(t => t.id === taskId)
+    const changed = existing?.status !== targetStatus
+
+    setTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, status: targetStatus, position: newPosition, updatedAt: new Date().toISOString() } : t
+    ))
+    await supabase.from('tasks').update({
+      status: targetStatus,
+      position: newPosition,
+      updated_at: new Date().toISOString(),
+    }).eq('id', taskId)
+
+    if (changed) logActivity('status_changed', taskId, existing?.title ?? null, `${existing?.status} → ${targetStatus}`)
   }
 
   async function deleteTask(id: string): Promise<void> {
@@ -237,6 +274,7 @@ export function useTaskStore(username: string) {
     activities,
     addTask,
     updateTask,
+    reorderTask,
     deleteTask,
     addSubtask,
     toggleSubtask,

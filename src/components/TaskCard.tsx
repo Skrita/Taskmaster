@@ -60,7 +60,12 @@ export function TaskCard({ task, onClick }: Props) {
       className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm hover:shadow-md cursor-pointer transition-all hover:-translate-y-0.5 group"
     >
       <div className="flex items-start justify-between gap-2 mb-1.5">
-        <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 flex-1">{task.title}</h3>
+        <div className="flex items-start gap-1.5 flex-1 min-w-0">
+          {task.status === 'done' && (
+            <span className="text-green-500 font-bold text-sm shrink-0 mt-px">✓</span>
+          )}
+          <h3 className={`text-sm font-semibold line-clamp-2 ${task.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{task.title}</h3>
+        </div>
         <div className="flex items-center gap-1 shrink-0">
           <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority]}`} title={task.priority} />
           <span className="text-xs text-gray-400">{PRIORITY_LABEL[task.priority]}</span>

@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { Comment } from '../types'
+import { avatarColor } from './AssigneeInput'
 
 interface Props {
   comments: Comment[]
+  knownUsers: string[]
+  currentUser: string
   onAdd: (author: string, text: string) => void
   onConvertToSubtask?: (text: string) => void
 }
@@ -15,14 +18,63 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 86400)}d ago`
 }
 
-export function CommentList({ comments, onAdd, onConvertToSubtask }: Props) {
-  const [author, setAuthor] = useState('')
+function renderCommentText(text: string, knownUsers: string[]) {
+  const parts = text.split(/(@\S+)/)
+  return parts.map((part, i) => {
+    if (part.startsWith('@')) {
+      const name = part.slice(1)
+      return knownUsers.includes(name)
+        ? <span key={i} className={`inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded-full ${avatarColor(name)}`}>{part}</span>
+        : <span key={i} className="font-semibold text-blue-600">{part}</span>
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+export function CommentList({ comments, knownUsers, currentUser, onAdd, onConvertToSubtask }: Props) {
   const [text, setText] = useState('')
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const suggestions = mentionQuery !== null
+    ? knownUsers.filter(u => u.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+    : []
+
+  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value
+    setText(val)
+    const cursor = e.target.selectionStart ?? val.length
+    const before = val.slice(0, cursor)
+    const match = before.match(/@(\w*)$/)
+    setMentionQuery(match ? match[1] : null)
+  }
+
+  function insertMention(name: string) {
+    const cursor = textareaRef.current?.selectionStart ?? text.length
+    const before = text.slice(0, cursor)
+    const after = text.slice(cursor)
+    const atIndex = before.lastIndexOf('@')
+    const newText = before.slice(0, atIndex) + `@${name} ` + after
+    setText(newText)
+    setMentionQuery(null)
+    textareaRef.current?.focus()
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      e.preventDefault()
+      handleAdd()
+    }
+    if (e.key === 'Escape' && mentionQuery !== null) {
+      setMentionQuery(null)
+    }
+  }
 
   function handleAdd() {
     if (!text.trim()) return
-    onAdd(author.trim() || 'Anonymous', text.trim())
+    onAdd(currentUser || 'Anonymous', text.trim())
     setText('')
+    setMentionQuery(null)
   }
 
   return (
@@ -36,7 +88,7 @@ export function CommentList({ comments, onAdd, onConvertToSubtask }: Props) {
       <ul className="space-y-3 mb-4">
         {comments.map(c => (
           <li key={c.id} className="flex gap-3 group">
-            <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(c.author)}`}>
               {c.author.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
@@ -53,26 +105,38 @@ export function CommentList({ comments, onAdd, onConvertToSubtask }: Props) {
                   </button>
                 )}
               </div>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">{c.text}</p>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+                {renderCommentText(c.text, knownUsers)}
+              </p>
             </div>
           </li>
         ))}
       </ul>
 
-      <div className="space-y-2">
-        <input
-          type="text"
-          value={author}
-          onChange={e => setAuthor(e.target.value)}
-          placeholder="Your name (optional)"
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+      <div className="relative space-y-2">
+        {suggestions.length > 0 && (
+          <div className="absolute bottom-full mb-1 left-0 right-12 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-10">
+            {suggestions.map(name => (
+              <button
+                key={name}
+                onMouseDown={e => { e.preventDefault(); insertMention(name) }}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left transition-colors"
+              >
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${avatarColor(name)}`}>
+                  {name.charAt(0).toUpperCase()}
+                </span>
+                <span className="text-sm text-gray-700">{name}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <textarea
+            ref={textareaRef}
             value={text}
-            onChange={e => setText(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleAdd() }}
-            placeholder="Write a comment... (Ctrl+Enter to submit)"
+            onChange={handleTextChange}
+            onKeyDown={handleKeyDown}
+            placeholder={`Comment as ${currentUser}… type @ to mention (Ctrl+Enter to post)`}
             rows={2}
             className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
           />

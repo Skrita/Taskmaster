@@ -1,3 +1,4 @@
+import type React from 'react'
 import type { FilterState, Status, Priority } from '../types'
 
 interface Props {
@@ -5,9 +6,10 @@ interface Props {
   assignees: string[]
   tags: string[]
   onChange: (f: FilterState) => void
+  searchRef?: React.RefObject<HTMLInputElement | null>
 }
 
-export function FilterBar({ filter, assignees, tags, onChange }: Props) {
+export function FilterBar({ filter, assignees, tags, onChange, searchRef }: Props) {
   function set<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     onChange({ ...filter, [key]: value })
   }
@@ -17,8 +19,9 @@ export function FilterBar({ filter, assignees, tags, onChange }: Props) {
   return (
     <div className="flex flex-wrap gap-2 items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
       <input
+        ref={searchRef}
         type="text"
-        placeholder="Search tasks..."
+        placeholder="Search tasks... ( / )"
         value={filter.search}
         onChange={e => set('search', e.target.value)}
         className="flex-1 min-w-40 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
