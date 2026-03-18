@@ -4,6 +4,7 @@ import { SubtaskList } from './SubtaskList'
 import { CommentList } from './CommentList'
 import { AssigneeInput, avatarColor } from './AssigneeInput'
 import { tagColor } from './TaskCard'
+import { generateSubtasks } from '../lib/claude'
 
 const STATUS_LABELS: Record<Status, string> = {
   todo: 'Todo',
@@ -277,6 +278,12 @@ export function TaskModal({
             onAdd={title => onAddSubtask(task.id, title)}
             onToggle={sid => onToggleSubtask(task.id, sid)}
             onDelete={sid => onDeleteSubtask(task.id, sid)}
+            onGenerateAI={() => generateSubtasks(
+              task.title,
+              task.description,
+              task.subtasks.map(s => s.title),
+              task.comments.map(c => c.text)
+            )}
           />
 
           <hr className="border-slate-800" />

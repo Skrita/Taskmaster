@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react'
+import { useMsal } from '@azure/msal-react'
 import { useTaskStore } from './hooks/useTaskStore'
 import { FilterBar } from './components/FilterBar'
 import { TaskBoard } from './components/TaskBoard'
@@ -8,6 +8,8 @@ import { LoginPage } from './components/LoginPage'
 import { ProfileSetup } from './components/ProfileSetup'
 import { ActivityPanel } from './components/ActivityPanel'
 import { AVATAR_COLOR_OPTIONS, avatarColor } from './components/AssigneeInput'
+import { FeedbackModal } from './components/FeedbackModal'
+import { supabase } from './lib/supabase'
 import type { Task, FilterState } from './types'
 
 function TaskApp() {
@@ -25,6 +27,7 @@ function TaskApp() {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [, setColorVersion] = useState(0)
   const [triggerAdd, setTriggerAdd] = useState(0)
+  const [showFeedback, setShowFeedback] = useState(false)
   const colorPickerRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -126,6 +129,16 @@ function TaskApp() {
     )
   }
 
+  async function handleFeedbackSubmit(category: string, message: string) {
+    await supabase.from('feedback').insert({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      actor: username,
+      category,
+      message,
+      created_at: new Date().toISOString(),
+    })
+  }
+
   function handleActivityTaskClick(taskId: string) {
     const task = store.tasks.find(t => t.id === taskId)
     if (task) {
@@ -147,6 +160,14 @@ function TaskApp() {
             <span>·</span>
             <span>{store.tasks.filter(t => t.status === 'done').length} done</span>
           </div>
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 transition-colors"
+            title="Leave feedback"
+          >
+            <span className="text-base leading-none">💬</span>
+            <span className="hidden sm:inline">Feedback</span>
+          </button>
           <button
             onClick={() => setShowActivity(v => !v)}
             className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg transition-colors ${
@@ -239,6 +260,14 @@ function TaskApp() {
         />
       )}
 
+      {showFeedback && (
+        <FeedbackModal
+          currentUser={username}
+          onClose={() => setShowFeedback(false)}
+          onSubmit={handleFeedbackSubmit}
+        />
+      )}
+
       {showActivity && (
         <ActivityPanel
           activities={store.activities}
@@ -251,24 +280,7 @@ function TaskApp() {
 }
 
 export default function App() {
-  // Handle redirect callback (MSAL stores state during redirect)
-  const { instance } = useMsal()
-  useMemo(() => {
-    instance.handleRedirectPromise().catch(() => {})
-  }, [instance])
-
-  if (import.meta.env.DEV) {
-    return <TaskApp />
-  }
-
-  return (
-    <>
-      <AuthenticatedTemplate>
-        <TaskApp />
-      </AuthenticatedTemplate>
-      <UnauthenticatedTemplate>
-        <LoginPage />
-      </UnauthenticatedTemplate>
-    </>
-  )
+  // TODO: Re-enable Azure AD login once admin consent is granted
+  // Auth is temporarily disabled — anyone can access the app
+  return <TaskApp />
 }

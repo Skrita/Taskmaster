@@ -13,7 +13,7 @@ interface Props {
   tasks: Task[]
   triggerAdd?: number
   onCardClick: (task: Task) => void
-  onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignees: string[]; tags: string[]; dueDate?: string }) => void
+  onAddTask: (fields: { title: string; description: string; status: Status; priority: 'low' | 'medium' | 'high'; assignees: string[]; tags: string[]; dueDate?: string; subtasks?: string[] }) => void
   onReorder: (taskId: string, beforeTaskId: string | null, targetStatus: Status) => void
 }
 

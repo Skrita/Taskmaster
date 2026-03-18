@@ -115,11 +115,17 @@ export function useTaskStore(username: string) {
     assignees: string[]
     tags: string[]
     dueDate?: string
+    subtasks?: string[]
   }): Promise<Task> {
     const now = new Date().toISOString()
     // Position at end of the target column
     const colTasks = tasks.filter(t => t.status === fields.status)
     const maxPos = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.position)) : 0
+    const initialSubtasks: Subtask[] = (fields.subtasks ?? []).map(title => ({
+      id: generateId(),
+      title,
+      completed: false,
+    }))
     const row = {
       id: generateId(),
       title: fields.title,
@@ -129,7 +135,7 @@ export function useTaskStore(username: string) {
       assignees: fields.assignees,
       tags: fields.tags,
       due_date: fields.dueDate ?? null,
-      subtasks: [],
+      subtasks: initialSubtasks,
       comments: [],
       position: maxPos + 1000,
       created_at: now,

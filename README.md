@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# TaskmAIster
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Kanban-style task manager for the Addvery team, built with React + TypeScript + Supabase.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Kanban board** — Todo / In Progress / Done columns with drag-and-drop reorder
+- **Task management** — create, edit, delete tasks with title, description, priority, due date, assignees, and tags
+- **Subtasks** with progress bar and **AI generation** (✦ Suggest button powered by OpenAI)
+- **Comments** with @mention autocomplete and convert-to-subtask
+- **Activity log** — real-time feed of all changes (⚡ Activity panel)
+- **Feedback** — Bug / Suggestion / Other submissions stored in Supabase
+- **Search & filter** — by status, priority, assignee, tag, or free text
+- **Microsoft SSO** — Azure AD login (Addvery tenant)
+- **Mobile-responsive** — tabbed layout on mobile, side-by-side on desktop
+- **Keyboard shortcuts** — `N` new task, `/` search, `Esc` close
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript + Vite + Tailwind CSS 4
+- Supabase (Postgres + real-time)
+- Microsoft MSAL (`@azure/msal-browser`)
+- OpenAI SDK for AI subtask generation
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.local.example .env.local
+# Fill in your OpenAI API key in .env.local
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+In dev mode, SSO login is bypassed — you'll be prompted for a display name on first run.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `VITE_OPENAI_API_KEY` | OpenAI API key for AI subtask generation |
+
+## Supabase Schema
+
+Three tables: `tasks`, `activity_logs`, `feedback`. RLS is enabled on all — permissive anon policies allow full access via the publishable key.
+
+See SQL setup in [src/lib/supabase.ts](src/lib/supabase.ts).
+
+## Deployment
+
+```bash
+npm run deploy   # builds and pushes to gh-pages branch
 ```
+
+Deployed at: `https://skrita.github.io/Taskmaster/`
+
+Production SSO requires Azure AD admin consent — contact your Azure portal admin.
